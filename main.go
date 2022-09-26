@@ -23,7 +23,8 @@ func main() {
 	route.HandleFunc("/add-project", addProject).Methods("POST")
 	route.HandleFunc("/detail/{index}", detail).Methods("GET")
 	route.HandleFunc("/delete/{index}", delete).Methods("GET")
-	route.HandleFunc("/edit/{index}", update).Methods("PUT")
+	route.HandleFunc("/edit-project/{id}", myProjectEdited).Methods("POST")
+	route.HandleFunc("/form-edit-project/{index}", myProjectFormEditProject).Methods("GET")
 	// r.HandleFunc("/add-contact", addContact).Methods("POST")
 	fmt.Println("server on in port 8080")
 	http.ListenAndServe("localhost:8080", route)
@@ -62,6 +63,7 @@ func project(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles("views/addProject.html")
 	if err != nil {
 		w.Write([]byte(err.Error()))
+		
 	}
 
 	tmpl.Execute(w, "")
@@ -73,6 +75,7 @@ type Project struct {
 	End_date     string
 	Duration     string
 	Desc         string
+	Id          int
 	Technologies []string
 }
 
@@ -137,6 +140,7 @@ func addProject(w http.ResponseWriter, r *http.Request) {
 		Duration: duration,
 		Desc:         desc,
 		Technologies: technologies,
+		Id:          len(data),
 	}
 
 	data = append(data, newData)
@@ -165,6 +169,7 @@ func detail(w http.ResponseWriter, r *http.Request) {
 				Start_date: data.Start_date,
 				End_date:   data.End_date,
 				Desc:       data.Desc,
+				Duration:  data.Duration,
 			}
 		}
 	}
@@ -183,25 +188,65 @@ func delete(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/", http.StatusFound)
 }
+func myProjectEdited(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
-func update(w http.ResponseWriter, r *http.Request) {
-	// {{ iseditmode?update : /add-project }}
-	w.Header().Set("Content-type", "text/html; charset=utf-8")
-	tmpl, err := template.ParseFiles("views/addProject.html")
+	err := r.ParseForm()
+
 	if err != nil {
-		w.Write([]byte(err.Error()))
-		return
+		log.Fatal(err)
 	}
+
+	Name := r.PostForm.Get("Name")
+	Start_date := r.PostForm.Get("Start_date")
+	End_date := r.PostForm.Get("End_date")
+	Desc := r.PostForm.Get("Desc")
+
+	editDataForm := Project{
+		Name: Name,
+		Start_date:   Start_date,
+		End_date:     End_date,
+		Desc: Desc,
+		Id:          id,
+		// Duration:    time.Now().String(),
+	}
+
+	data[id] = editDataForm
+
+	fmt.Println(data)
+
+	http.Redirect(w, r, "/", http.StatusMovedPermanently)
+
+}
+
+func myProjectFormEditProject(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles("views/myProjectFormEditProject.html")
 
 	index, _ := strconv.Atoi(mux.Vars(r)["index"])
-	fmt.Println(index)
 
-	var Edit = Project{}
-	data := map[string]interface{}{
-		"Edit": Edit,
+	ProjectEdit := Project{}
+
+	for i, data := range data {
+		if index == i {
+			ProjectEdit = Project{
+				Name: data.Name,
+				Start_date:   data.Start_date,
+				End_date:     data.End_date,
+				Desc: data.Desc,
+				Id:          data.Id,
+			}
+		}
 	}
 
-	tmpl.Execute(w, data)
+	response := map[string]interface{}{
+		"Project": ProjectEdit,
+	}
+
+	if err == nil {
+		tmpl.Execute(w, response)
+	} else {
+		panic(err)
+	}
 }
 
 

@@ -80,8 +80,8 @@
           <div class="card m-3 shadow-lg rounded-4" style="width: 20rem">
             <img src="/public/image/astronaut.jpg" class="card-img-top rounded-4 p-2" alt="..." />
             <div class="card-body">
-              <h5 class="card-title">{{ $data.Name }}</h5>
-              <p class="text-secondary fs-6">Durasi : {{ $data.Duration }}</p>
+              <h5 class="card-title">{{ $data.Name }}</h5><br>
+              <p class="text-secondary fs-6">Duration : {{ $data.Duration }}</p>
               <p class="card-text">{{$data.Desc}}</p>
               <div class="mt-2 mb-2">
                 {{ range $index, $tech := $data.Technologies }}
@@ -89,7 +89,7 @@
                 {{ end }}
               </div>
               <div class="d-flex btn-group">
-                <a href="/project" class="btn btn-dark m-2 rounded">Edit</a>
+                <a href="/form-edit-project/{{$index}}" class="btn btn-dark m-2 rounded">Edit</a>
                 <a href="/delete/{{ $index }}" class="btn btn-dark m-2 rounded-start">Delete</a>
               </div>
             </div>
